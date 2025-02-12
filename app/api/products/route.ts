@@ -368,7 +368,7 @@ export async function GET(request: Request) {
     return handleError(error);
   }
 }
-
+export const dynamic = "force-dynamic";
 // You might also want to add pagination and filtering
 // export async function GET(request: Request) {
 //   try {
@@ -441,4 +441,3 @@ export async function GET(request: Request) {
 // GET /api/products?category=electronics
 // GET /api/products?subcategory=smartphones
 // GET /api/products?search=iphone
-export const dynamic = "force-dynamic";

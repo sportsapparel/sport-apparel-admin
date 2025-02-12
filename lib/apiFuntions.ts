@@ -37,7 +37,11 @@ export const deleteAllImages = async () => {
 // export const fetchCatgoriesData = async () => {};
 export const fetchCatgoriesData = async () => {
   try {
-    const res = await axios.get("/api/category");
+    const res = await axios.get("/api/category", {
+      headers: {
+        cache: "no-store",
+      },
+    });
     return res.data;
   } catch (error) {
     console.error("Error fetching categories data:", error);
@@ -46,7 +50,11 @@ export const fetchCatgoriesData = async () => {
 };
 export const fetchSubCatgoriesDataByCategoryId = async (id: number) => {
   try {
-    const res = await axios.get(`/api/subcategories/${id}`);
+    const res = await axios.get(`/api/subcategories/${id}`, {
+      headers: {
+        cache: "no-store",
+      },
+    });
     return res.data;
   } catch (error) {
     console.error("Error fetching categories data:", error);
@@ -57,7 +65,11 @@ export const fetchSubCatgoriesDataByCategoryId = async (id: number) => {
 // export const fetchCatgoriesData = async () => {};
 export const fetchProducts = async () => {
   try {
-    const res = await axios.get("/api/products");
+    const res = await axios.get("/api/products", {
+      headers: {
+        cache: "no-store",
+      },
+    });
     return res.data.products;
   } catch (error) {
     console.error("Error fetching categories data:", error);
