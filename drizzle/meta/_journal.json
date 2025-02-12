@@ -1,0 +1,34 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1739089830626,
+      "tag": "0000_abnormal_jackpot",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1739089868771,
+      "tag": "0001_silky_roxanne_simpson",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1739213748186,
+      "tag": "0002_glorious_kulan_gath",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1739290416972,
+      "tag": "0003_daffy_bishop",
+      "breakpoints": true
+    }
+  ]
+}
