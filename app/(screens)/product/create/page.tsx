@@ -13,7 +13,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import { revalidatePath } from "next/cache";
 // Types
 interface DetailField {
   key: string;
@@ -145,7 +144,7 @@ const ProductForm = () => {
       // Reset form after successful submission
       setFormData(initialFormData);
       setDetailFields([{ key: "", value: "" }]);
-      revalidatePath("/product");
+      router.push("/product");
       setSelectedCategory("");
       toast.success(res?.data?.message || "Product created successfully");
       // You might want to show a success message or redirect here
