@@ -344,26 +344,18 @@ export async function GET(request: Request) {
     };
 
     // Return response with SEO-optimized data
-    return NextResponse.json(
-      {
-        products: productsWithDetails,
-        pagination,
-        summary: productSummary,
-        // Include global SEO metadata
-        seoMetadata: {
-          title: "Our Products | Sports Apparel",
-          description:
-            "Explore our wide range of high-quality products across various categories.",
-          canonicalUrl: "https://yourwebsite.com/products", // Replace with your actual URL
-        },
+    return NextResponse.json({
+      products: productsWithDetails,
+      pagination,
+      summary: productSummary,
+      // Include global SEO metadata
+      seoMetadata: {
+        title: "Our Products | Sports Apparel",
+        description:
+          "Explore our wide range of high-quality products across various categories.",
+        canonicalUrl: "https://yourwebsite.com/products", // Replace with your actual URL
       },
-      {
-        // Add cache control headers for SEO and performance
-        headers: {
-          "Cache-Control": "public, max-age=3600, stale-while-revalidate=7200",
-        },
-      }
-    );
+    });
   } catch (error) {
     return handleError(error);
   }
