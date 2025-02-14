@@ -6,8 +6,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   req: Request,
-  { params }: { params: { productId: string } }
+  props: { params: Promise<{ productId: string }> }
 ) {
+  const params = await props.params;
   try {
     const { productId } = params;
     console.log("====================================");
@@ -76,7 +77,7 @@ export async function GET(
       },
       createdAt: productData.product.createdAt,
     };
-
+    console.log(formattedProduct, "format data");
     return NextResponse.json({
       success: true,
       data: formattedProduct,
@@ -89,52 +90,128 @@ export async function GET(
     );
   }
 }
+export const dynamic = "force-dynamic";
+
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { productId: string } }
+  props: { params: Promise<{ productId: string }> }
 ) {
+  const params = await props.params;
+  console.log("PUT /api/products/[productId] - Start", {
+    productId: params.productId,
+  });
+
   const { productId } = params;
-  const { name, description, thumbnailId, imageIds, ...rest } =
-    await request.json();
+  const {
+    name,
+    description,
+    thumbnailId,
+    images,
+    minOrder,
+    deliveryInfo,
+    whatsappNumber,
+    slug,
+    details,
+    seo,
+    createdAt, // Explicitly extract but don't use in update
+    ...rest
+  } = await request.json();
+
+  // Create update payload without timestamp fields
+  const updatePayload = {
+    name,
+    description,
+    thumbnailId,
+    minOrder,
+    deliveryInfo,
+    whatsappNumber,
+    slug,
+    details,
+    seo,
+    ...rest,
+  };
+
+  // Remove any undefined or null values
+  Object.keys(updatePayload).forEach((key) => {
+    if (updatePayload[key] === undefined || updatePayload[key] === null) {
+      delete updatePayload[key];
+    }
+  });
+
+  console.log("Cleaned update payload:", updatePayload);
 
   try {
+    console.log("Updating product details...", { productId });
+
     // Update product details
     await db
       .update(products)
-      .set({ name, description, thumbnailId, ...rest })
+      .set(updatePayload)
       .where(eq(products.id, productId));
 
-    // Update product images
-    const existingImageIds = await db
-      .select({ imageId: productImages.imageId })
-      .from(productImages)
+    console.log("Product details updated successfully", { productId });
+
+    // Delete existing images
+    console.log("Deleting existing product images...", { productId });
+    await db
+      .delete(productImages)
       .where(eq(productImages.productId, productId));
+    console.log("Existing product images deleted", { productId });
 
-    const newImageIds = imageIds.filter(
-      (imageId: number) =>
-        !existingImageIds.some(
-          (existingImage) => existingImage.imageId === imageId
-        )
-    );
+    // Insert new images
+    if (images && images.length > 0) {
+      console.log("Processing new images...", {
+        productId,
+        imageCount: images.length,
+        imageIds: images.map((img: any) => img.id),
+      });
 
-    if (newImageIds.length > 0) {
-      const newProductImages = newImageIds.map((imageId: number) => ({
-        productId: productId,
-        imageId,
-      }));
+      const newProductImages = images.map(
+        (image: { id: number; url: string }) => ({
+          productId,
+          imageId: image.id,
+        })
+      );
+
+      console.log("Inserting new product images...", {
+        productId,
+        newImagesCount: newProductImages.length,
+      });
+
       await db.insert(productImages).values(newProductImages);
+      console.log("New product images inserted successfully", { productId });
+    } else {
+      console.log("No new images to process", { productId });
     }
 
+    console.log("Product update completed successfully", { productId });
     return NextResponse.json(
       { message: "Product updated successfully" },
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error updating product:", error);
+    console.error("Error updating product:", {
+      productId,
+      error: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+      updatePayload, // Log the payload that caused the error
+    });
+
     return NextResponse.json(
       { message: "Internal server error" },
       { status: 500 }
     );
   }
 }
-export const dynamic = "force-dynamic";
+export async function DELETE(
+  request: NextRequest,
+  props: { params: Promise<{ productId: string }> }
+) {
+  const params = await props.params;
+  const { productId } = params;
+  await db.delete(products).where(eq(products.id, productId));
+  return NextResponse.json(
+    { message: "Product deleted successfully" },
+    { status: 200 }
+  );
+}

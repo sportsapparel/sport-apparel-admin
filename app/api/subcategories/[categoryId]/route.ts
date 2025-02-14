@@ -8,10 +8,8 @@ import { eq } from "drizzle-orm";
 import { createSlug } from "@/utils/slug";
 
 // Get subcategories by category ID
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { categoryId: string } }
-) {
+export async function GET(request: NextRequest, props: { params: Promise<{ categoryId: string }> }) {
+  const params = await props.params;
   try {
     const categorySubcategories = await db
       .select()
@@ -30,10 +28,8 @@ export async function GET(
 
 // app/api/subcategories/[id]/route.ts
 // Update subcategory
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const body = await request.json();
     const { name, description, image, categoryId } = body;
@@ -70,10 +66,8 @@ export async function PATCH(
 }
 
 // Delete subcategory and related products
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const subcategoryId = parseInt(params.id);
 

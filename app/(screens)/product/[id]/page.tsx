@@ -1,23 +1,29 @@
 "use client";
 
+import { useCallback, useEffect, useState } from "react";
+import { FormProvider, useForm } from "react-hook-form";
+import { useParams, useRouter } from "next/navigation";
+import Image from "next/image";
+import axios from "axios";
+import { toast } from "react-toastify";
 import Button from "@/components/Button";
 import ImageSelector from "@/components/ImageIdSelector";
-import { useFetchData } from "@/hooks/useFetchData";
-import {
-  fetchCatgoriesData,
-  fetchSubCatgoriesDataByCategoryId,
-} from "@/lib/apiFuntions";
-import { CategoryData } from "@/types";
-import axios from "axios";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import React, { useCallback, useMemo, useState } from "react";
-import { toast } from "react-toastify";
+import Input from "@/components/custom/Input";
+// import Input from "@/components/Input";
 
-// Types
-interface DetailField {
-  key: string;
-  value: string;
+// Type definitions
+interface ProductImage {
+  id: number;
+  displayOrder: number;
+  url: string;
+}
+
+interface FormField {
+  type: "text" | "textarea" | "tel";
+  label: string;
+  name: keyof FormData;
+  required?: boolean;
+  placeholder: string;
 }
 
 interface FormData {
@@ -30,408 +36,402 @@ interface FormData {
   whatsappNumber: string;
   thumbnailId: string;
   subcategoryId: string;
+  images: ProductImage[];
 }
 
-const initialFormData: FormData = {
-  name: "",
-  description: "",
-  details: {},
-  minOrder: "",
-  price: "",
-  deliveryInfo: "",
-  whatsappNumber: "",
-  thumbnailId: "",
-  subcategoryId: "",
-};
+interface ProductData extends Omit<FormData, "thumbnailId"> {
+  thumbnail: {
+    id: number;
+    url: string;
+  };
+  images: ProductImage[];
+}
 
 const ProductUpdateForm = () => {
-  const [step, setStep] = useState(1);
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [formData, setFormData] = useState<FormData>(initialFormData);
-  const [detailFields, setDetailFields] = useState<DetailField[]>([
-    { key: "", value: "" },
-  ]);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const params = useParams();
+  const productId = params?.id as string;
   const router = useRouter();
-  const { data: categories, loading: categoryLoading } =
-    useFetchData<CategoryData[]>(fetchCatgoriesData);
-
-  const fetchSubCategories = useCallback(() => {
-    return selectedCategory
-      ? fetchSubCatgoriesDataByCategoryId(Number(selectedCategory))
-      : null;
-  }, [selectedCategory]);
-
-  const { data: subcategories, loading: subCategoryLoading } = useFetchData(
-    // @ts-expect-error: unsused err
-    fetchSubCategories ?? (() => Promise.reject(new Error("Invalid category")))
-  );
-
-  const handleFormChange = useCallback(
-    (field: keyof FormData, value: string) => {
-      setFormData((prev) => ({ ...prev, [field]: value }));
+  const [loading, setLoading] = useState(false);
+  const [details, setDetails] = useState<Record<string, string>>({});
+  const [newKey, setNewKey] = useState("");
+  const [newValue, setNewValue] = useState("");
+  const methods = useForm<FormData>({
+    defaultValues: {
+      name: "",
+      description: "",
+      details: {},
+      minOrder: "",
+      price: "",
+      deliveryInfo: "",
+      whatsappNumber: "",
+      thumbnailId: "",
+      subcategoryId: "",
+      images: [],
     },
-    []
-  );
+  });
+  // Form fields configuration
+  const formFields = [
+    {
+      type: "text",
+      label: "Product Name",
+      name: "name",
+      required: true,
+      placeholder: "Enter product name",
+    },
+    {
+      type: "text",
+      label: "Minimum Order",
+      name: "minOrder",
+      placeholder: "Enter minimum order quantity",
+    },
+    {
+      type: "textarea",
+      label: "Delivery Information",
+      name: "deliveryInfo",
+      placeholder: "Enter delivery information",
+    },
+    {
+      type: "textarea",
+      label: "Description",
+      name: "description",
+      required: true,
+      placeholder: "Enter product description",
+      className: "hidden",
+    },
+    {
+      type: "tel",
+      label: "WhatsApp Number",
+      name: "whatsappNumber",
+      required: true,
+      placeholder: "Enter WhatsApp number",
+    },
+  ];
 
-  const handleDetailFieldChange = useCallback(
-    (index: number, field: keyof DetailField, value: string) => {
-      setDetailFields((prev) => {
-        const newFields = [...prev];
-        newFields[index][field] = value;
-        return newFields;
-      });
+  const [productImages, setProductImages] = useState<ProductImage[]>([]);
 
-      setFormData((prev) => ({
-        ...prev,
-        details: detailFields.reduce((acc, field) => {
-          if (field.key && field.value) {
-            acc[field.key] = field.value;
-          }
-          return acc;
-        }, {} as Record<string, string>),
+  const handleAddImages = useCallback(
+    (newImageIds: number | number[]) => {
+      const idsArray = Array.isArray(newImageIds) ? newImageIds : [newImageIds];
+      const newImages = idsArray.map((id) => ({
+        id: Number(id),
+        displayOrder: productImages.length,
+        url: "",
       }));
+
+      const updatedImages = [...productImages, ...newImages];
+      // setProductImages(updatedImages);
+      methods.setValue("images", updatedImages);
     },
-    [detailFields]
+    [productImages, methods]
   );
 
-  const addDetailField = useCallback(() => {
-    setDetailFields((prev) => [...prev, { key: "", value: "" }]);
-  }, []);
+  const handleRemoveImage = useCallback(
+    (imageId: number) => {
+      const updatedImages = productImages
+        .filter((img) => img.id !== imageId)
+        .map((img, index) => ({
+          ...img,
+          displayOrder: index,
+        }));
+      setProductImages(updatedImages);
+      methods.setValue("images", updatedImages);
+    },
+    [productImages, methods]
+  );
 
-  const removeDetailField = useCallback((index: number) => {
-    setDetailFields((prev) => prev.filter((_, i) => i !== index));
-  }, []);
+  const moveImage = useCallback(
+    (fromIndex: number, toIndex: number) => {
+      const newImages = [...productImages];
+      const [movedImage] = newImages.splice(fromIndex, 1);
+      newImages.splice(toIndex, 0, movedImage);
 
-  const handleImageSelect = useCallback((ids: number | number[]) => {
-    const thumbnailId = Array.isArray(ids)
-      ? ids[0]?.toString()
-      : ids.toString();
-    setFormData((prev) => ({ ...prev, thumbnailId }));
-  }, []);
+      const updatedImages = newImages.map((img, index) => ({
+        ...img,
+        displayOrder: index,
+      }));
 
-  const handleBack = useCallback(() => {
-    setStep((prev) => Math.max(1, prev - 1));
-    if (step === 2) {
-      setSelectedCategory("");
+      setProductImages(updatedImages);
+      methods.setValue("images", updatedImages);
+    },
+    [productImages, methods]
+  );
+
+  const handleThumbnailSelect = useCallback(
+    (ids: number | number[]) => {
+      const thumbnailId = Array.isArray(ids)
+        ? ids[0]?.toString()
+        : ids.toString();
+      methods.setValue("thumbnailId", thumbnailId);
+    },
+    [methods]
+  );
+
+  useEffect(() => {
+    const fetchProductData = async () => {
+      if (!productId) return;
+
+      try {
+        const response = await axios.get<{ data: ProductData }>(
+          `/api/products/${productId}`,
+          {
+            headers: {
+              cache: "no-store",
+            },
+          }
+        );
+        const productData = response.data.data;
+        // Set form values
+        methods.reset({
+          name: productData.name,
+          description: productData.description,
+          details: productData.details,
+          minOrder: productData.minOrder,
+          price: productData.price,
+          deliveryInfo: productData.deliveryInfo,
+          whatsappNumber: productData.whatsappNumber,
+          thumbnailId: productData.thumbnail.id.toString(),
+          subcategoryId: productData.subcategoryId,
+          images: productData.images,
+        });
+
+        setDetails(productData.details || {});
+
+        // Set form values
+        Object.entries(productData).forEach(([key, value]) => {
+          if (key !== "thumbnail" && key !== "images") {
+            methods.setValue(key as keyof FormData, value);
+          }
+        });
+
+        // Set thumbnail
+        methods.setValue("thumbnailId", productData.thumbnail.id.toString());
+        setDetails(productData.details || {});
+
+        // Set images
+        const transformedImages = productData.images.map((img) => ({
+          id: img.id,
+          displayOrder: img.displayOrder,
+          url: img.url,
+        }));
+        setProductImages(transformedImages);
+        methods.setValue("images", transformedImages);
+      } catch (error) {
+        toast.error("Failed to fetch product data");
+        console.error(error);
+      }
+    };
+
+    fetchProductData();
+  }, [productId, methods]);
+
+  const handleAddDetail = useCallback(() => {
+    if (newKey.trim() && newValue.trim()) {
+      const updatedDetails = {
+        ...details,
+        [newKey.trim()]: newValue.trim(),
+      };
+      setDetails(updatedDetails);
+      methods.setValue("details", updatedDetails);
+      setNewKey("");
+      setNewValue("");
     }
-    if (step === 3) {
-      setFormData((prev) => ({ ...prev, subcategoryId: "" }));
-    }
-  }, [step]);
+  }, [newKey, newValue, details, methods]);
 
-  const handleNext = useCallback((nextStep: number) => {
-    setStep(nextStep);
-  }, []);
+  const handleRemoveDetail = useCallback(
+    (key: string) => {
+      const { [key]: _, ...updatedDetails } = details;
+      setDetails(updatedDetails);
+      methods.setValue("details", updatedDetails);
+    },
+    [details, methods]
+  );
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
+  const handleUpdateDetail = useCallback(
+    (key: string, value: string) => {
+      const updatedDetails = {
+        ...details,
+        [key]: value,
+      };
+      setDetails(updatedDetails);
+      methods.setValue("details", updatedDetails);
+    },
+    [details, methods]
+  );
 
-    if (
-      !formData.name ||
-      !formData.description ||
-      !formData.whatsappNumber ||
-      !formData.subcategoryId
-    ) {
-      setError("Please fill in all required fields");
-      return;
-    }
-
+  const onSubmit = async (data: FormData) => {
+    console.log(data);
     setLoading(true);
     try {
-      const res = await axios.post("/api/products", formData);
-      // Reset form after successful submission
-      setFormData(initialFormData);
-      setDetailFields([{ key: "", value: "" }]);
-      router.push("/product");
-      setSelectedCategory("");
-      toast.success(res?.data?.message || "Product created successfully");
-      // You might want to show a success message or redirect here
+      await axios.put(`/api/products/${productId}`, data);
+      toast.success("Product updated successfully");
+      // router.push("/products");
     } catch (error) {
-      setError(
-        error instanceof Error ? error.message : "Failed to create product"
-      );
+      toast.error("Failed to update product");
+      console.error(error);
     } finally {
       setLoading(false);
     }
   };
 
-  const renderBackButton = useMemo(() => {
-    if (step === 1) return null;
+  return (
+    <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow">
+      <h2 className="text-2xl font-bold mb-6">Update Product</h2>
 
-    return (
-      <button
-        type="button"
-        onClick={handleBack}
-        className="flex items-center gap-2 text-gray-600 mb-4 hover:text-gray-800"
-      >
-        <i className="fa fa-arrow-down"></i> Back
-      </button>
-    );
-  }, [step, handleBack]);
-
-  const renderStepContent = useMemo(() => {
-    switch (step) {
-      case 1:
-        return (
-          <div className="space-y-4">
-            <label className="block text-sm font-medium text-gray-700">
-              Select Category
-            </label>
-            <select
-              value={selectedCategory}
-              onChange={(e) => {
-                setSelectedCategory(e.target.value);
-                handleNext(2);
-              }}
-              className="w-full p-2 border border-gray-300 rounded"
-              required
-            >
-              <option value="">Select a category</option>
-              {categories?.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-            {categoryLoading && (
-              <p className="text-sm text-gray-500">Loading categories...</p>
-            )}
-            {categories?.length === 0 && (
-              <p>
-                No categories available click to add new{" "}
-                <Link href={"/category"} className="text-green-500">
-                  Category
-                </Link>
-              </p>
-            )}
-          </div>
-        );
-
-      case 2:
-        return (
-          <div className="space-y-4">
-            <label className="block text-sm font-medium text-gray-700">
-              Select Subcategory
-            </label>
-            <select
-              value={formData.subcategoryId}
-              onChange={(e) => {
-                handleFormChange("subcategoryId", e.target.value);
-                handleNext(3);
-              }}
-              className="w-full p-2 border border-gray-300 rounded"
-              required
-            >
-              <option value="">Select a subcategory</option>
-              {Array.isArray(subcategories) &&
-                subcategories.map((subcategory) => (
-                  <option key={subcategory.id} value={subcategory.id}>
-                    {subcategory.name}
-                  </option>
-                ))}
-            </select>
-            {subCategoryLoading && (
-              <p className="text-sm text-gray-500">Loading subcategories...</p>
-            )}
-            {subcategories?.length === 0 && (
-              <p>
-                No sub categories available click to add new{" "}
-                <Link
-                  href={`/sub-categories/${selectedCategory}`}
-                  className="text-green-500"
-                >
-                  Sub Category
-                </Link>
-              </p>
-            )}
-          </div>
-        );
-
-      case 3:
-        return (
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Product Name
-              </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => handleFormChange("name", e.target.value)}
-                className="w-full p-2 mt-1 border border-gray-300 rounded"
-                required
+      <FormProvider {...methods}>
+        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-6">
+          <div className="grid grid-cols-2 gap-3">
+            {formFields.map((field, index) => (
+              <Input
+                key={index}
+                name={field.name}
+                type={field.type}
+                label={field.label}
+                placeholder={field.placeholder}
+                required={field.required}
+                value={methods.watch(field.name as keyof FormData)}
+                onChange={(value) => {
+                  methods.setValue(field?.name as keyof FormData, value);
+                }}
+                className={`col-span-1`}
               />
+            ))}
+          </div>
+
+          {/* <div className="space-y-2">
+            <img
+              src={methods.watch("thumbnailId")}
+              className="h-32 w-32"
+              alt="selected thumbnail"
+            />
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Thumbnail
+              <span className="text-red-500">*</span>
+            </label>
+            <ImageSelector onSelect={handleThumbnailSelect} />
+          </div> */}
+
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-medium">Product Images</h3>
+              <ImageSelector onSelect={handleAddImages} multiple />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Description
-              </label>
-              <textarea
-                value={formData.description}
-                onChange={(e) =>
-                  handleFormChange("description", e.target.value)
-                }
-                className="w-full p-2 mt-1 border border-gray-300 rounded"
-                rows={4}
-                required
-              />
-            </div>
+            <div className="grid grid-cols-2 gap-4">
+              {productImages.map((image, index) => (
+                <div key={image.id} className="relative group aspect-square">
+                  <Image
+                    src={image.url}
+                    alt={`Product image ${index + 1}`}
+                    fill
+                    className="object-cover rounded-lg"
+                  />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Product Details
-              </label>
-              <div className="space-y-3">
-                {detailFields.map((field, index) => (
-                  <div key={index} className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="Key"
-                      value={field.key}
-                      onChange={(e) =>
-                        handleDetailFieldChange(index, "key", e.target.value)
-                      }
-                      className="flex-1 p-2 border border-gray-300 rounded"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Value"
-                      value={field.value}
-                      onChange={(e) =>
-                        handleDetailFieldChange(index, "value", e.target.value)
-                      }
-                      className="flex-1 p-2 border border-gray-300 rounded"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeDetailField(index)}
-                      className="p-2 text-red-500 hover:text-red-700"
-                    >
-                      {/* <Trash2 size={20} /> */}
-                      <i className="fa fa-trash"></i>
-                    </button>
+                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-200 rounded-lg">
+                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveImage(image.id)}
+                        className="p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                      >
+                        <i className="fa-solid fa-trash"></i>
+                      </button>
+                    </div>
+
+                    {index > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => moveImage(index, index - 1)}
+                        className="absolute left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 bg-white p-1 rounded-full shadow-md"
+                      >
+                        ←
+                      </button>
+                    )}
+
+                    {index < productImages.length - 1 && (
+                      <button
+                        type="button"
+                        onClick={() => moveImage(index, index + 1)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 bg-white p-1 rounded-full shadow-md"
+                      >
+                        →
+                      </button>
+                    )}
                   </div>
-                ))}
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Product Details</h3>
+
+              {Object.entries(details).map(([key, value]) => (
+                <div key={key} className="flex gap-4 items-start">
+                  <div className="">
+                    <label className="block text-sm font-medium text-gray-700">
+                      {key}
+                    </label>
+                    <input
+                      type="text"
+                      value={value}
+                      onChange={(e) => handleUpdateDetail(key, e.target.value)}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveDetail(key)}
+                    className="mt-6 p-2 text-red-500 hover:text-red-700"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+
+              <div className="flex gap-4 items-start">
+                <div className="flex-1">
+                  <input
+                    type="text"
+                    value={newKey}
+                    onChange={(e) => setNewKey(e.target.value)}
+                    placeholder="Enter detail key"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="flex-1">
+                  <input
+                    type="text"
+                    value={newValue}
+                    onChange={(e) => setNewValue(e.target.value)}
+                    placeholder="Enter detail value"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
                 <button
                   type="button"
-                  onClick={addDetailField}
-                  className="flex items-center gap-2 text-blue-500 hover:text-blue-700"
+                  onClick={handleAddDetail}
+                  className="mt-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
                 >
-                  <i className="fa fa-plus"></i> Add Detail
+                  Add
                 </button>
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Minimum Order
-              </label>
-              <input
-                type="text"
-                value={formData.minOrder}
-                onChange={(e) => handleFormChange("minOrder", e.target.value)}
-                className="w-full p-2 mt-1 border border-gray-300 rounded"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Price
-              </label>
-              <input
-                type="text"
-                value={formData.price}
-                onChange={(e) => handleFormChange("price", e.target.value)}
-                className="w-full p-2 mt-1 border border-gray-300 rounded"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Delivery Information
-              </label>
-              <textarea
-                value={formData.deliveryInfo}
-                onChange={(e) =>
-                  handleFormChange("deliveryInfo", e.target.value)
-                }
-                className="w-full p-2 mt-1 border border-gray-300 rounded"
-                rows={3}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                WhatsApp Number
-              </label>
-              <input
-                type="text"
-                value={formData.whatsappNumber}
-                onChange={(e) =>
-                  handleFormChange("whatsappNumber", e.target.value)
-                }
-                className="w-full p-2 mt-1 border border-gray-300 rounded"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Thumbnail
-              </label>
-              <div className="mt-1">
-                <ImageSelector onSelect={handleImageSelect} />
-                {formData.thumbnailId && (
-                  <p className="mt-2 text-sm text-gray-500">
-                    Selected image ID: {formData.thumbnailId}
-                  </p>
-                )}
+            {productImages.length === 0 && (
+              <div className="text-center py-8 bg-gray-50 rounded-lg">
+                <p className="text-gray-500">No images added yet</p>
               </div>
-            </div>
-
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-blue-300"
-            >
-              {loading ? "Creating..." : "Create Product"}
-            </Button>
-
-            {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+            )}
           </div>
-        );
 
-      default:
-        return null;
-    }
-  }, [
-    step,
-    selectedCategory,
-    formData,
-    categories,
-    subcategories,
-    categoryLoading,
-    subCategoryLoading,
-    loading,
-    error,
-    detailFields,
-    handleFormChange,
-    handleDetailFieldChange,
-    removeDetailField,
-    handleImageSelect,
-  ]);
-
-  return (
-    <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow">
-      <h2 className="text-2xl font-bold mb-6">Create New Product</h2>
-      {renderBackButton}
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {renderStepContent}
-      </form>
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-blue-300"
+          >
+            {loading ? "Updating..." : "Update Product"}
+          </Button>
+        </form>
+      </FormProvider>
     </div>
   );
 };

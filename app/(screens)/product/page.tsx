@@ -9,7 +9,9 @@ import { useFilteredData } from "@/hooks/useFilteredData";
 import { fetchProducts } from "@/lib/apiFuntions";
 import { ProductData } from "@/types";
 import { ProductDatasColumns } from "@/types/columns";
+import axios from "axios";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 const ProductListPage = () => {
   const router = useRouter();
@@ -24,6 +26,7 @@ const ProductListPage = () => {
     data: products,
     loading,
     error,
+    refetch,
   } = useFetchData<ProductData[]>(fetchProducts);
 
   const {
@@ -37,6 +40,19 @@ const ProductListPage = () => {
     searchKeys: ["name", "slug", "category.name", "subcategory.name"],
     itemsPerPage: 5,
   });
+  const [isLoading, setisLoading] = useState(false);
+  const DeleteProduct = async (productId: string) => {
+    try {
+      setisLoading(true);
+      const response = await axios.delete(`/api/products/${productId}`);
+      console.log(response);
+      refetch();
+      setisLoading(false);
+    } catch (error) {
+      setisLoading(false);
+      console.log(error);
+    }
+  };
 
   const actions = (item: ProductData) => (
     <div className="space-x-2">
@@ -49,8 +65,19 @@ const ProductListPage = () => {
         modalTitle="View Product Details"
         modalMessage="View details for this product?"
         onSave={() => router.push(`/product/${item.id}`)}
-        loading={false}
+        loading={isLoading}
         bypassModal={true}
+      />
+      <IconModalButton
+        buttonIcon={
+          <div className="border border-textColor rounded-full p-1">
+            <i className="fa fa-trash p-1 text-textColor"></i>
+          </div>
+        }
+        modalTitle="Delete Product"
+        modalMessage="Are you sure you want to delete this product?"
+        onSave={() => DeleteProduct(item.id)}
+        loading={isLoading}
       />
     </div>
   );
