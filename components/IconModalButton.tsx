@@ -142,6 +142,7 @@ const Modal: React.FC<ModalProps> = ({
 
         {message && (
           <div
+            className="text-wrap"
             style={{
               marginBottom: "24px",
               fontSize: "14px",

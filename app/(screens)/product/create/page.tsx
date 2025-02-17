@@ -24,7 +24,7 @@ interface FormData {
   description: string;
   details: Record<string, string>;
   minOrder: string;
-  price: string;
+  // price: string;
   deliveryInfo: string;
   whatsappNumber: string;
   thumbnailId: string;
@@ -36,7 +36,7 @@ const initialFormData: FormData = {
   description: "",
   details: {},
   minOrder: "",
-  price: "",
+  // price: "",
   deliveryInfo: "",
   whatsappNumber: "",
   thumbnailId: "",
@@ -318,7 +318,7 @@ const ProductForm = () => {
                 <button
                   type="button"
                   onClick={addDetailField}
-                  className="flex items-center gap-2 text-blue-500 hover:text-blue-700"
+                  className="flex items-center gap-2 text-btnColor hover:text-btnColor/80"
                 >
                   <i className="fa fa-plus"></i> Add Detail
                 </button>
@@ -337,7 +337,7 @@ const ProductForm = () => {
               />
             </div>
 
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium text-gray-700">
                 Price
               </label>
@@ -347,7 +347,7 @@ const ProductForm = () => {
                 onChange={(e) => handleFormChange("price", e.target.value)}
                 className="w-full p-2 mt-1 border border-gray-300 rounded"
               />
-            </div>
+            </div> */}
 
             <div>
               <label className="block text-sm font-medium text-gray-700">

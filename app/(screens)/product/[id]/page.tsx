@@ -331,13 +331,13 @@ const ProductUpdateForm = () => {
                       <button
                         type="button"
                         onClick={() => handleRemoveImage(image.id)}
-                        className="p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                        className="p-1 px-2 bg-red-500 text-white rounded-full hover:bg-red-600"
                       >
                         <i className="fa-solid fa-trash"></i>
                       </button>
                     </div>
 
-                    {index > 0 && (
+                    {/* {index > 0 && (
                       <button
                         type="button"
                         onClick={() => moveImage(index, index - 1)}
@@ -355,7 +355,7 @@ const ProductUpdateForm = () => {
                       >
                         →
                       </button>
-                    )}
+                    )} */}
                   </div>
                 </div>
               ))}
