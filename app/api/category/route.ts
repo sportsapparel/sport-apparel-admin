@@ -8,7 +8,7 @@ import { NextResponse } from "next/server";
 // Utility function to generate SEO metadata
 function generateSeoMetadata(name: string, description?: string | null) {
   return {
-    metaTitle: `${name} - Your Brand Category`,
+    metaTitle: `${name} - Sports Apparel Category`,
     metaDescription: description
       ? description.slice(0, 160)
       : `Explore our ${name} category with high-quality products.`,

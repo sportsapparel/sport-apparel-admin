@@ -120,3 +120,11 @@ export interface ProductsResponse {
   summary: ProductSummary;
   seoMetadata: SeoMetadata;
 }
+export interface ContactData extends Record<string, unknown> {
+  id: number;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  createdAt: string;
+}

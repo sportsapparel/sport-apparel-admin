@@ -9,7 +9,7 @@ export function truncateText(text: string, maxLength: number): string {
 // Generate meta title
 export function generateMetaTitle(
   name: string,
-  suffix: string = "| Your Brand"
+  suffix: string = "| Sports Apparel"
 ): string {
   const baseTitle = truncateText(name, 57); // Leave room for suffix
   return `${baseTitle} ${suffix}`.trim();

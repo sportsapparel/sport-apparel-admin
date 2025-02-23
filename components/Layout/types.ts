@@ -18,3 +18,8 @@ export interface UserNavigationItem {
   name: string;
   href: string;
 }
+export interface Stat {
+  label: string;
+  value: number;
+  icon: string;
+}

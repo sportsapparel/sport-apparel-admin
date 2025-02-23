@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { CategoryData, ProductData, SubCategoryData } from ".";
+import { CategoryData, ContactData, ProductData, SubCategoryData } from ".";
 import React from "react";
 
 export const CategoryColumn = [
@@ -187,5 +187,32 @@ export const ProductDatasColumns = [
       item.structuredData
         ? JSON.stringify(item.structuredData, null, 2).slice(0, 100) + "..."
         : "Not Set",
+  },
+];
+export const ContactColumns = [
+  {
+    header: "ID",
+    accessor: (item: ContactData) => item.id,
+  },
+  {
+    header: "NAME",
+    accessor: (item: ContactData) => item.name,
+  },
+  {
+    header: "EMAIL",
+    accessor: (item: ContactData) => item.email,
+  },
+  {
+    header: "SUBJECT",
+    accessor: (item: ContactData) => item.subject,
+  },
+  {
+    header: "MESSAGE",
+    accessor: (item: ContactData) => item.message,
+  },
+  {
+    header: "CREATED AT",
+    accessor: (item: ContactData) =>
+      new Date(item.createdAt).toLocaleDateString(),
   },
 ];

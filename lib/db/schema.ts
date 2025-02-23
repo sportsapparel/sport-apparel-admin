@@ -96,7 +96,16 @@ export const productImages = pgTable("product_images", {
   displayOrder: integer("display_order").default(0),
   createdAt: timestamp("created_at").defaultNow(),
 });
-
+export const contactUs = pgTable("contact_us", {
+  id: serial("id").primaryKey(), // Auto-incrementing primary key
+  name: text("name").notNull(), // Name of the user (required)
+  email: varchar("email", { length: 255 }).notNull(), // Email address (required)
+  subject: text("subject").notNull(), // Subject of the message (required)
+  message: text("message").notNull(), // Message content (required)
+  createdAt: timestamp("created_at", { mode: "date", precision: 6 })
+    .defaultNow()
+    .notNull(), // Timestamp with timezone and microsecond precision
+});
 // Relations
 export const categoriesRelations = relations(categories, ({ many }) => ({
   subcategories: many(subcategories),

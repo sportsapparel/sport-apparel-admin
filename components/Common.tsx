@@ -2,40 +2,41 @@
 
 import React from "react";
 // import { ArrowLeft, ArrowRight } from "lucide-react";
-
 type InfoCardProps = {
-  icon: React.ReactNode; // Allows any JSX element, component, or icon
   label: string;
-  value: string | number;
-  percentage?: number; // Optional percentage text
+  value: number;
+  icon?: string;
+  isLoading?: boolean;
 };
 
 export const InfoCard = ({
-  icon: Icon,
   label,
   value,
-  percentage,
+  icon,
+  isLoading = false,
 }: InfoCardProps) => (
-  <div className="bg-white rounded-lg p-6 flex items-center space-x-4 shadow-[1px_1px_6px_0px_rgba(0,_0,_0,_0.1)] transition-shadow duration-200 ">
-    {/* Icon or Component */}
-    <div className="rounded-full p-1 ">{Icon}</div>
-    {/* Content */}
-    <div className="flex flex-col flex-grow">
-      <span className="text-sm text-gray-800">{label}</span>
-      <span className="text-2xl font-semibold text-gray-800">{value}</span>
-      {percentage && (
-        <div className="flex items-center ">
-          <span
-            className={`text-sm pr-1 py-1 rounded-full ${
-              percentage >= 0 ? "text-green-500 " : "text-red-500 "
-            }`}
-          >
-            {percentage}%
-          </span>
-          <span className="text-sm text-gray-800">from last month</span>
+  <div className="bg-white/70 rounded-2xl p-6 shadow-md transition-shadow duration-200 hover:shadow-lg flex gap-3 text-wrap space-y-2">
+    {isLoading ? (
+      <div className="animate-pulse flex gap-3">
+        {/* Icon Skeleton */}
+        <div className="h-8 w-8 bg-gray-300 rounded-full"></div>
+
+        <div className="flex flex-col space-y-2">
+          {/* Label Skeleton */}
+          <div className="h-4 w-20 bg-gray-300 rounded-md"></div>
+          {/* Value Skeleton */}
+          <div className="h-8 w-28 bg-gray-300 rounded-md"></div>
         </div>
-      )}
-    </div>
+      </div>
+    ) : (
+      <>
+        <i className={`fa-duotone text-2xl fa-solid pt-2 ${icon}`}></i>
+        <div className="flex flex-col">
+          <span className="text-sm text-gray-500">{label}</span>
+          <span className="text-3xl font-bold text-gray-800">{value}</span>
+        </div>
+      </>
+    )}
   </div>
 );
 type PageHeaderProps = {

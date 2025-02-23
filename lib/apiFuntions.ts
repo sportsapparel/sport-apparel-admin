@@ -76,3 +76,43 @@ export const fetchProducts = async () => {
     throw new Error("Failed to fetch categories data");
   }
 };
+export const fetchContactData = async () => {
+  try {
+    const res = await axios.get("/api/contact", {
+      headers: {
+        cache: "no-store",
+      },
+    });
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching categories data:", error);
+    throw new Error("Failed to fetch categories data");
+  }
+};
+export const DeleteContactById = async (id: number) => {
+  try {
+    const res = await axios.delete(`/api/contact/${id}`, {
+      headers: {
+        cache: "no-store",
+      },
+    });
+    return res;
+  } catch (error) {
+    console.error("Error fetching categories data:", error);
+    throw new Error("Failed to fetch categories data");
+  }
+};
+export const fetchDashboardStats = async () => {
+  try {
+    const res = await axios.get("/api/dashboard", {
+      headers: {
+        cache: "no-store",
+      },
+    });
+    console.log(res.data.stats);
+    return res.data.stats;
+  } catch (error) {
+    console.error("Error fetching categories data:", error);
+    throw new Error("Failed to fetch categories data");
+  }
+};

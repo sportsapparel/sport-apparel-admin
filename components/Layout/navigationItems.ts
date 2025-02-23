@@ -1,12 +1,9 @@
 // data.ts
 import {
+  CubeIcon,
+  FolderIcon,
   HomeIcon,
   PhotoIcon,
-  // UsersIcon,
-  // FolderIcon,
-  // CalendarIcon,
-  // DocumentDuplicateIcon,
-  // ChartPieIcon,
 } from "@heroicons/react/24/outline";
 import { NavigationItem, Team, UserNavigationItem } from "./types";
 
@@ -16,13 +13,13 @@ export const navigation: NavigationItem[] = [
   {
     name: "Categories",
     href: "/category",
-    icon: PhotoIcon,
+    icon: FolderIcon, // Represents categorization or grouping
     current: true,
   },
   {
     name: "Products",
     href: "/product",
-    icon: PhotoIcon,
+    icon: CubeIcon, // Represents products or items
     current: true,
   },
   // { name: "Team", href: "#", icon: UsersIcon, current: false },

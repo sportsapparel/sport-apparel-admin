@@ -1,12 +1,15 @@
 // app/api/categories/[id]/route.ts
 import { db } from "@/lib/db/db";
-import { categories } from "@/lib/db/schema";
+import { categories, subcategories } from "@/lib/db/schema";
 import { createSlug } from "@/utils/slug";
 import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 
 // Update category
-export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+export async function PATCH(
+  request: NextRequest,
+  props: { params: Promise<{ id: string }> }
+) {
   const params = await props.params;
   try {
     const body = await request.json();
@@ -93,7 +96,10 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
 //     );
 //   }
 // }
-export async function DELETE(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+export async function DELETE(
+  request: NextRequest,
+  props: { params: Promise<{ id: string }> }
+) {
   const params = await props.params;
   const { id } = params;
   try {
