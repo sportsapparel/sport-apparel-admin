@@ -5,6 +5,13 @@ import dynamic from "next/dynamic";
 const Gallery = dynamic(() => import("./Gallery"), {
   loading: () => <Loader />,
 });
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Gallery  | Sports Apparel",
+  description: "Gallery for the latest sports apparel.",
+};
+
 const page = () => {
   return (
     <>

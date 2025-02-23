@@ -10,14 +10,12 @@ import { useFilteredData } from "@/hooks/useFilteredData";
 import { DeleteContactById, fetchContactData } from "@/lib/apiFuntions";
 import { ContactData } from "@/types";
 import { ContactColumns } from "@/types/columns";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
 const Contact = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
-  const router = useRouter();
   // const headerActions = (
   //   <>
   //     <Button className="rounded" onClick={() => setIsOpen(true)}>
