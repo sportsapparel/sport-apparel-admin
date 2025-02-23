@@ -1,8 +1,9 @@
 // import Image from "next/image";
 // import { TeamsList } from "./TeamList";
 import { NavigationItem, Team } from "./types";
-import { Cog6ToothIcon } from "@heroicons/react/24/outline";
+import { Cog6ToothIcon, PowerIcon } from "@heroicons/react/24/outline";
 import { Navigation } from "./Navigation";
+import { signOut } from "next-auth/react";
 interface SidebarProps {
   navigation: NavigationItem[];
   teams: Team[];
@@ -30,16 +31,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ navigation }) => (
           <TeamsList teams={teams} />
         </li> */}
         <li className="mt-auto">
-          <a
-            href="#"
-            className="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
+          <div
+            onClick={() =>
+              signOut({
+                callbackUrl: "/",
+                redirect: true,
+              })
+            }
+            className="group -mx-2 flex gap-x-3 rounded-md p-2   text-gray-700 hover:bg-gray-50 hover:text-textColor"
           >
-            <Cog6ToothIcon
+            <PowerIcon
               aria-hidden="true"
-              className="size-6 shrink-0 text-gray-400 group-hover:text-indigo-600"
+              className="size-6 shrink-0 text-textColor group-hover:text-textColor"
             />
-            Settings
-          </a>
+            Logout
+          </div>
         </li>
       </ul>
     </nav>

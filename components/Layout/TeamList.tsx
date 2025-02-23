@@ -11,8 +11,8 @@ export const TeamsList: React.FC<TeamsListProps> = ({ teams }) => (
     <ul role="list" className="-mx-2 mt-2 space-y-1">
       {teams.map((team) => (
         <li key={team.name}>
-          <a
-            href={team.href}
+          <div
+            // href={team.href}
             className={classNames(
               team.current
                 ? "bg-gray-50 text-indigo-600"
@@ -31,7 +31,7 @@ export const TeamsList: React.FC<TeamsListProps> = ({ teams }) => (
               {team.initial}
             </span>
             <span className="truncate">{team.name}</span>
-          </a>
+          </div>
         </li>
       ))}
     </ul>

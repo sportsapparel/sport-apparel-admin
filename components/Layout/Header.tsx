@@ -21,7 +21,7 @@ export const Header: React.FC<HeaderProps> = ({
 }) => (
   <div className="sticky top-0 z-40 lg:mx-auto lg:max-w-7xl lg:px-8">
     <div className="flex h-16 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-xs sm:gap-x-6 sm:px-6 lg:px-0 lg:shadow-none">
-      <button
+      {/*   <button
         type="button"
         onClick={onSidebarOpen}
         className="-m-2.5 p-2.5 text-gray-700 lg:hidden"
@@ -61,16 +61,11 @@ export const Header: React.FC<HeaderProps> = ({
             className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200"
           />
           <button
-            onClick={() =>
-              signOut({
-                callbackUrl: "/",
-                redirect: true,
-              })
-            }
+           
           >
             <PowerIcon color="gray" aria-hidden="true" className="size-6" />
           </button>
-          {/* <Menu as="div" className="relative">
+          <Menu as="div" className="relative">
             <MenuButton className="-m-1.5 flex items-center p-1.5">
               <span className="sr-only">Open user menu</span>
 
@@ -112,9 +107,9 @@ export const Header: React.FC<HeaderProps> = ({
               ))}
               <MenuItem></MenuItem>
             </MenuItems>
-          </Menu>*/}
+          </Menu>
         </div>
-      </div>
+      </div>*/}
     </div>
   </div>
 );

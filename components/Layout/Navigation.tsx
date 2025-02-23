@@ -10,7 +10,7 @@ interface NavigationProps {
 export const Navigation: React.FC<NavigationProps> = ({ items }) => {
   const pathname = usePathname();
 
-  console.log(`Current Pathname: ${pathname}`);
+  // console.log(`Current Pathname: ${pathname}`);
 
   return (
     <ul role="list" className="-mx-2 space-y-1">
