@@ -8,7 +8,7 @@ import {
 import { NavigationItem, Team, UserNavigationItem } from "./types";
 
 export const navigation: NavigationItem[] = [
-  { name: "Dashboard", href: "/", icon: HomeIcon, current: true },
+  { name: "Dashboard", href: "/dashboard", icon: HomeIcon, current: true },
   { name: "Gallery", href: "/gallery", icon: PhotoIcon, current: true },
   {
     name: "Categories",
